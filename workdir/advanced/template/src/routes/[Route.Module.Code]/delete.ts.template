@@ -1,0 +1,197 @@
+{% macro renderNextFalueField(Fields) %}
+    {% for field in Fields  %}
+    "{{ field.Name }}": validateResult.data.{{ field.Gui.Name | safe }},
+    {% endfor %}
+{% endmacro %}
+import { errorHandler, validator } from "@fendy3002/express-helper";
+let uuid = require('uuid/v4');
+import lo = require('lodash');
+import moment = require('moment');
+
+import * as types from '../../types';
+import { ServiceType as evalApprovalType } from '../../libs/approval/evalApproval';
+import { ServiceType as insertApprovalType } from '../../libs/approval/insertApproval';
+import helperRaw from './helper';
+import notificationManagerRaw from '../../libs/notificationManager';
+
+export default async (router, config: types.config.app, moduleInfo: types.moduleInfo, evalApproval: evalApprovalType, insertApproval: insertApprovalType) => {
+    const helper = await helperRaw(config);
+    const validatePostData = async (body) => {
+        return await validator.json.schema({
+            type: "object",
+            properties: {
+                {{ _helper.renderHelper("jsonvalidate.template", Model.Fields) | safe }}
+            }
+        }).validate<any>(body);
+    };
+    const getSupplement = async (req) => {
+        let supplement: any = {};
+        {{ _helper.renderHelper("listsupplement.template", Model.Fields) | safe }}
+        return supplement;
+    };
+    router.get("/:id/delete",
+        errorHandler.handled(async (req, res, next) => {
+            res.locals._title = "Delete " + req.moduleInfo.title;
+            const changeRequestModel = req.mongoose.model("change_request");
+            const currentModuleModel = req.mongoose.model("{{ Model.Name }}");
+            let id = req.params.id;
+
+            if (await changeRequestModel.findOne({
+                ModuleCode: req.moduleInfo.code,
+                "NextValue._id": id,
+                TransactionStatusCode: "10"
+            })) {
+                req.flash('_modal', {
+                    "type": "error",
+                    "message": (req.lang._("general.delete.pendingApproval", "")).bold()
+                });
+                let redirectTo = req.header('Referer') || "/approval-template";
+                return res.redirect(redirectTo);
+            }
+            let modalData = null;
+            if (req.query._form_id) {
+                let oldFormId = req.query._form_id;
+                modalData = req.flash('modal_' + oldFormId)[0];
+            }
+            let newFormId = uuid();
+            let result = await currentModuleModel.findById(id).lean();
+
+            return res.render("user_facility_document_category/edit.html", {
+                data: result,
+                modal: modalData,
+                supplement: await getSupplement(req),
+                operation: "D",
+                moduleInfo: req.moduleInfo
+            });
+        })
+    );
+    // delete post
+    router.post("/:id/delete",
+        errorHandler.handled(async (req, res, next) => {
+            res.locals._title = "Delete " + req.moduleInfo.title;
+            const changeRequestModel = req.mongoose.model("change_request");
+            const currentModuleModel = req.mongoose.model("{{ Model.Name }}");
+
+            let notificationManager = await notificationManagerRaw(config, req.notificator, req.lang);
+
+            let modelId = req.params.id;
+            const currentModuleData = await currentModuleModel.findOne({
+                _id: modelId
+            }).lean();
+
+            let reasonForChanging = req.body.ReasonForChanging;
+            const data = {
+                ...req.body,
+            };
+            if (!reasonForChanging) {
+                return res.render(`${req.moduleInfo.urlPrefix}/edit.html`, {
+                    data: data,
+                    modal: {
+                        type: "error",
+                        message: "Reason for Changing is Required".bold()
+                    },
+                    operation: "D",
+                    moduleInfo: req.moduleInfo
+                });
+            }
+            else if (await changeRequestModel.findOne({
+                ModuleCode: req.moduleInfo.code,
+                "NextValue._id": modelId,
+                TransactionStatusCode: "10"
+            })) {
+                return res.render(`${req.moduleInfo.urlPrefix}/edit.html`, {
+                    data: data,
+                    modal: {
+                        "type": "error",
+                        "message": (req.lang._("general.delete.pendingApproval", "")).bold()
+                    },
+                    operation: "D",
+                    moduleInfo: req.moduleInfo
+                });
+            }
+            else {
+                let changeRequestId = uuid();
+                let changePayload = {
+                    _id: changeRequestId,
+                    TransactionStatusCode: "20",
+                    ModuleCode: req.moduleInfo.code,
+                    Operation: "D",
+                    RecordId: modelId,
+                    CurrentValue: null,
+                    NextValue: currentModuleData,
+                    ReasonForChanging: reasonForChanging,
+                    Log: [],
+                    LastModifiedAtTimeStamp: new Date().getTime(),
+                    LastModifiedOperationCode: "D",
+                    LastModifiedByUserAccountKey: req.session.user.id,
+                    LastModifiedByUserAccountName: req.session.user.name
+                };
+
+                let approval = await evalApproval(changePayload.NextValue, "D");
+                let approvalId = null;
+                if (approval) {
+                    // approval on progress
+                    changePayload.TransactionStatusCode = "10";
+                    approvalId = await insertApproval({
+                        CurrentTransactionJSON: null,
+                        NextTransactionJSON: null,
+                        TransactionID: changePayload._id,
+                        Approval: approval,
+
+                        UserAccountKey: req.session.user.id,
+                        UserAccountName: req.session.user.name,
+                    });
+                }
+                let insertResult = await changeRequestModel.create(
+                    changePayload
+                );
+                if (approval) {
+                    await notificationManager.submitApproval({
+                        operation: "D",
+                        viewUrl: `${req.fullHostUrl}/${req.moduleInfo.urlPrefix}/${changeRequestId}/view-log` ,
+                        approvalUrl: `${req.fullHostUrl}/approval/` + approvalId.lineId,
+                        firstApproverId: approval.ApproverTransactionJSON["1"].UserAccountKey,
+                        requestId: changeRequestId,
+                        moduleName: req.moduleInfo.title,
+                        timestamp: new Date().getTime(),
+                        userId: req.session.user.id,
+                        submitterEmail: req.session.user.email
+                    });
+                    req.flash('modal_' + req.body._form_id, {
+                        "type": "success",
+                        "message": req.lang._("general.successApproval", "", {
+                            subject: req.lang.text("general.delete.successApproval", "", {
+                                module: req.moduleInfo.title
+                            }),
+                            transaction_id: changeRequestId.toUpperCase(),
+                            timestamp: moment(changePayload.LastModifiedAtTimeStamp).format(config.dateTimeFullFormat)
+                        })
+                    });
+                }
+                else {
+                    await notificationManager.submitNoApproval({
+                        operation: "D",
+                        viewUrl: `${req.fullHostUrl}/${req.moduleInfo.urlPrefix}/${changeRequestId}/view-log` ,
+                        requestId: changeRequestId,
+                        moduleName: req.moduleInfo.title,
+                        timestamp: new Date().getTime(),
+                        userId: req.session.user.id,
+                        submitterEmail: req.session.user.email
+                    });
+                    let newRecord = await helper.onFullyApprove(req, changeRequestId, "D");
+                    req.flash('modal_' + req.body._form_id, {
+                        "type": "success",
+                        "message": req.lang._("general.successNoApproval", "", {
+                            subject: req.lang.text("general.delete.successNoApproval", "", {
+                                module: req.moduleInfo.title
+                            }),
+                            record_id: modelId.toUpperCase(),
+                            timestamp: moment(changePayload.LastModifiedAtTimeStamp).format(config.dateTimeFullFormat)
+                        })
+                    });
+                }
+                return res.redirect(`/${req.moduleInfo.urlPrefix}/${changeRequestId}/view-log?_form_id=${req.body._form_id}`);
+            }
+        })
+    );
+};

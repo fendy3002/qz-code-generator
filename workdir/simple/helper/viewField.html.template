@@ -1,0 +1,26 @@
+|% set col = 0 %|
+|% for field in _data %|
+
+|% if col == 0 %|
+<div class="row">
+|% endif %|
+
+|% if field.Type == "text" %|
+    |$ _helper.renderHelper("inputText.html.template", field) | safe $|
+|% elif field.Type == "select" %|
+    |$ _helper.renderHelper("inputSelect.html.template", field) | safe $|
+|% elif field.Type == "checkbox" %|
+    |$ _helper.renderHelper("inputCheckbox.html.template", field) | safe $|
+|% endif %|
+
+|% if col == 1 %|
+</div>
+|% set col = 0 %|
+|% else %|
+|% set col = 1 %|
+|% endif %|
+
+|% endfor %|
+|% if col == 1 %|
+</div>
+|% endif %|

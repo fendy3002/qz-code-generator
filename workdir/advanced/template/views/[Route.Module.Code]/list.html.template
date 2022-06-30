@@ -1,0 +1,141 @@
+{% extends "template/operational.html" %}
+{% import "template/crud/filter_modal.html" as filterModal %}
+
+{% macro filterContent(context) %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="row form-group">
+            
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row form-group">
+            
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% block content %}
+<ol class="breadcrumb" style="margin-bottom: 0px;">
+    <li class="breadcrumb-item"><a href="/#">Home</a></li>
+    <li class="breadcrumb-item active">{{ moduleInfo.title }}</li>
+</ol>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title mb-0">{{ moduleInfo.title }}</h2>
+    </div>
+</div>
+<div class="container-fluid">
+    <div id="ui-view">
+        <ul class="nav nav-tabs" role="tablist" style="margin-bottom: 16px;">
+            <li class="nav-item">
+                <a class="nav-link active" href="javascript:void()">{{ moduleInfo.title | upper }}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/{{ moduleInfo.urlPrefix }}/transaction-order">TRANSACTION ORDER</a>
+            </li>
+        </ul>
+        <div class="card">
+            <div class="card-body">
+                <a href="/{{ moduleInfo.urlPrefix }}/create" class="btn btn-square btn-primary">
+                    <i class="fa fa-plus"></i> Add
+                </a>
+                <button type="button" class="btn btn-square btn-primary" data-toggle="modal"
+                    data-target="[data-role='filter_modal']">
+                    <i class="fa fa-search"></i> Filter
+                </button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <!-- Pagination -->
+                        {{
+                            _pagination({
+                                link: '/' + moduleInfo.urlPrefix + '?page={current}',
+                                cssClass: "pull-right",
+                                query: _query,
+                                current: _paginationData.current, 
+                                rowCount: _paginationData.rowCount,
+                                pageLimit : _paginationData.pageLimit
+                            }) | safe
+                        }}
+                    </div>
+                </div>
+
+
+                <div class="row" style="margin-bottom: 8px;">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <table class="table table-sm text-nowrap">
+                                <thead>
+                                    <tr class="">
+                                        |$ _helper.renderHelper("tableHeaderField.html.template", Model.Fields) | safe $|
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for each in data %}
+                                    <tr class="ninja-container">
+                                        |$ _helper.renderHelper("tableBodyField.html.template", Model.Fields) | safe $|
+                                        <td>
+                                            <div class="ninja-panel extend-left">
+                                                <a href="/{{ moduleInfo.urlPrefix }}/{{ each._id | urlencode }}/view"
+                                                    class="btn btn-secondary btn-square btn-sm">
+                                                    <i class="fa fa-eye"></i> View
+                                                </a>
+                                                <a href="/{{ moduleInfo.urlPrefix }}/{{ each._id | urlencode }}/update"
+                                                    class="btn btn-square btn-primary btn-sm">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </a>
+                                                <a href="/{{ moduleInfo.urlPrefix }}/{{ each._id | urlencode }}/delete"
+                                                    class="btn btn-square btn-danger btn-sm">
+                                                    <i class="fa fa-trash"></i> Delete
+                                                </a>
+                                                <a href="/{{ moduleInfo.urlPrefix }}/{{ each._id | urlencode }}/log"
+                                                    class="btn btn-secondary btn-square btn-sm">
+                                                    <i class="fa fa-clipboard"></i> Log
+                                                </a>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="99" align="center">No data</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <!-- Pagination -->
+                        {{
+                            _pagination({
+                                link: '/' + moduleInfo.urlPrefix + '?page={current}',
+                                cssClass: "pull-right",
+                                query: _query,
+                                current: _paginationData.current, 
+                                rowCount: _paginationData.rowCount,
+                                pageLimit : _paginationData.pageLimit
+                            }) | safe
+                        }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ filterModal.render({
+    body: filterContent,
+    query: _query,
+    context: null
+}) | safe }}
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "template/operational.html" %}
+{% import "template/approval/detail_panel.html" as approvalPanel %}
+{% import "template/approval/action_panel.html" as actionPanel %}
+
+{% block content %}
+<ol class="breadcrumb" style="margin-bottom: 0px;">
+    <li class="breadcrumb-item"><a href="/#">Home</a></li>
+    {% if operation == "A" %}
+    {% if approval.CanAction %}
+    <li class="breadcrumb-item"> <a href="/approval/#">Approval</a></li>
+    {% else %}
+    <li class="breadcrumb-item"> <a href="/{{ moduleInfo.urlPrefix }}/#">{{ moduleInfo.title }}</a></li>
+    {% endif %}
+    {% else %}
+    <li class="breadcrumb-item"> <a href="/{{ moduleInfo.urlPrefix }}/#">{{ moduleInfo.title }}</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active">
+        {{ _lang.text("pageOperation." + operation, operation) | changeCase }} {{ moduleInfo.title }}
+    </li>
+</ol>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title mb-0">{{ _lang.text("pageOperation." + operation, operation) | changeCase }}
+            {{ moduleInfo.title }}</h2>
+    </div>
+</div>
+<div class="container-fluid">
+    <div id="ui-view">
+        <form class="form-horizontal" method="POST">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            {% if operation == "V" or operation == "A" %}
+                            <div class="row">
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group row">
+                                        <label class="col-md-4 col-form-label text-right" for="ReferenceNo">Transaction
+                                            ID</label>
+                                        <div class="col-md-8">
+                                            <input class="form-control" type="text" name="ReferenceNo"
+                                                value="{{ data._id | upper }}" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group row">
+                                        <label class="col-md-4 col-form-label text-right"
+                                            for="ReferenceDate">Transaction
+                                            Time Stamp</label>
+                                        <div class="col-md-8">
+                                            <input class="form-control" type="text" name="ReferenceDate"
+                                                value="{{ data.LastModifiedAtTimeStamp | timestampDate }}" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group row">
+                                        <label class="col-md-4 col-form-label text-right"
+                                            for="TransactionStatus">Transaction
+                                            Status</label>
+                                        <div class="col-md-8">
+                                            <input class="form-control" type="text" name="TransactionStatus"
+                                                value="{{ _status(moduleInfo.code, data.TransactionStatusCode) }}"
+                                                readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group row">
+                                        <label class="col-md-4 col-form-label text-right"
+                                            for="TransactionStatus">Created
+                                            By</label>
+                                        <div class="col-md-8">
+                                            <input class="form-control" type="text" name="LastModifiedByUserAccountName"
+                                                value="{{ data.LastModifiedByUserAccountName }}" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if data.Operation == "U" or data.Operation == "D" %}
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="form-group row">
+                                                {{ _form.label("Reason for Changing", {
+                                                    "cssClass": "col-md-4 col-form-label text-right",
+                                                    "required": operation != 'V' and operation != 'A',
+                                                    "attr": {
+                                                        "for": "ReasonForChanging"
+                                                    }
+                                                }) | safe }}
+                                                <div class="col-md-8">
+                                                    <textarea class="form-control" name="ReasonForChanging" rows="2"
+                                                        placeholder="Reason..."
+                                                        {{ "readonly" if operation == "V" or operation == 'A' }}>{{data.ReasonForChanging}}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <hr />
+                            {% endif %}
+                            |$ _helper.renderHelper("viewField.html.template", _helper.appendObj(Model, { _readOnly: false })) | safe $|
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if operation != "A" %}
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button type="button" class="btn btn-secondary btn-square _btn-back"></button>
+                            <button class="btn btn-square btn-primary" {{"hidden" if operation =="V" else ""}}>
+                                {{ _form.operation(operation) }}
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    {{ actionPanel.render(approval) | safe }}
+                    {% endif %}
+                </div>
+            </div>
+            {% if operation == "A" or operation == "V" %}
+            {{ approvalPanel.render(approval, _user) | safe }}
+            {% endif %}
+            <input type="hidden" name="_form_id" value="{{ data._form_id }}" />
+        </form>
+    </div>
+</div>
+<div class="modal fade" role="dialog" id="_form_modal">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <p data-role="icon"></p>
+                <p data-role="content"></p>
+                <button class="btn btn-primary btn-square" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    let modalData = {{ modal | default (null) | dump | safe }};
+    $("[data-role='select2']").select2({
+        theme: "bootstrap"
+    });
+    decimalFormatInput($('input[data-role="number"]'));
+    if (modalData) {
+        window._u.showModal(modalData, $("#_form_modal"));
+    }
+</script>
+{{ approvalPanel.renderScript(_userToken, data._id) | safe }}
+
+{% endblock %}

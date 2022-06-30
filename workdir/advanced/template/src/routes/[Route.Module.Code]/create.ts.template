@@ -1,0 +1,167 @@
+{% macro renderNextFalueField(Fields) %}
+    {% for field in Fields  %}
+    "{{ field.Name }}": validateResult.data.{{ field.Gui.Name | safe }},
+    {% endfor %}
+{% endmacro %}
+import { errorHandler, validator } from "@fendy3002/express-helper";
+let uuid = require('uuid/v4');
+import lo = require('lodash');
+import moment = require('moment');
+
+import * as types from '../../types';
+import { ServiceType as evalApprovalType } from '../../libs/approval/evalApproval';
+import { ServiceType as insertApprovalType } from '../../libs/approval/insertApproval';
+import helperRaw from './helper';
+import notificationManagerRaw from '../../libs/notificationManager';
+
+export default async (router, config: types.config.app, moduleInfo: types.moduleInfo, evalApproval: evalApprovalType, insertApproval: insertApprovalType) => {
+    const helper = await helperRaw(config);
+    const validatePostData = async (body) => {
+        return await validator.json.schema({
+            type: "object",
+            properties: {
+                {{ _helper.renderHelper("jsonvalidate.template", Model.Fields) | safe }}
+            }
+        }).validate<any>(body);
+    };
+    const getSupplement = async (req) => {
+        let supplement: any = {};
+        {{ _helper.renderHelper("listsupplement.template", Model.Fields) | safe }}
+        return supplement;
+    };
+    // create
+    router.get("/create",
+        errorHandler.handled(async (req, res, next) => {
+            res.locals._title = "Add " + req.moduleInfo.title;
+
+            let modalData = null;
+            if (req.query._form_id) {
+                let oldFormId = req.query._form_id;
+                modalData = req.flash('modal_' + oldFormId)[0];
+            }
+            let newFormId = uuid();
+
+            const data = {
+                _form_id: newFormId
+            };
+
+            return res.render(`${req.moduleInfo.urlPrefix}/edit.html`, {
+                data: data,
+                modal: modalData,
+                supplement: await getSupplement(req),
+                operation: "I",
+                moduleInfo: req.moduleInfo
+            });
+        })
+    );
+    // create post
+    router.post("/create",
+        errorHandler.handled(async (req, res, next) => {
+            res.locals._title = "Add " + req.moduleInfo.title;
+            const changeRequestModel = req.mongoose.model("change_request");
+            let notificationManager = await notificationManagerRaw(config, req.notificator, req.lang);
+            
+            let validateResult = await validatePostData(req.body);
+            if (!validateResult.isValid) {
+                return res.render(`${req.moduleInfo.urlPrefix}/edit.html`, {
+                    data: req.body,
+                    modal: {
+                        "type": "error",
+                        "message": validateResult.errors.map(k => k.name + " " + k.message).join(",<br/>").bold()
+                    },
+                    supplement: await getSupplement(req),
+                    operation: "I"
+                });
+            } else {
+                let changeRequestId = uuid();
+                let modelId = uuid();
+                let changePayload = {
+                    _id: changeRequestId,
+                    TransactionStatusCode: "20",
+                    ModuleCode: req.moduleInfo.code,
+                    Operation: "I",
+                    RecordId: modelId,
+                    CurrentValue: null,
+                    NextValue: {
+                        _id: modelId,
+                        {{ renderNextFalueField(Model.Fields) | safe }}
+                        LastModifiedAtTimeStamp: new Date().getTime(),
+                        LastModifiedOperationCode: "I",
+                        LastModifiedByUserAccountKey: req.session.user.id,
+                        LastModifiedByUserAccountName: req.session.user.name
+                    },
+                    ReasonForChanging: null,
+                    Log: [],
+                    LastModifiedAtTimeStamp: new Date().getTime(),
+                    LastModifiedByUserAccountKey: req.session.user.id,
+                    LastModifiedByUserAccountName: req.session.user.name
+                };
+
+                let approval = await evalApproval(changePayload.NextValue, "I");
+                let approvalId = null;
+                if (approval) {
+                    // approval on progress
+                    changePayload.TransactionStatusCode = "10";
+                    approvalId = await insertApproval({
+                        CurrentTransactionJSON: null,
+                        NextTransactionJSON: null,
+                        TransactionID: changePayload._id,
+                        Approval: approval,
+
+                        UserAccountKey: req.session.user.id,
+                        UserAccountName: req.session.user.name,
+                    });
+                }
+                let insertResult = await changeRequestModel.create(
+                    changePayload
+                );
+                if (approval) {
+                    await notificationManager.submitApproval({
+                        operation: "I",
+                        viewUrl: `${req.fullHostUrl}/${req.moduleInfo.urlPrefix}/${changeRequestId}/view-log` ,
+                        approvalUrl: `${req.fullHostUrl}/approval/` + approvalId.lineId,
+                        firstApproverId: approval.ApproverTransactionJSON["1"].UserAccountKey,
+                        requestId: changeRequestId,
+                        moduleName: req.moduleInfo.title,
+                        timestamp: new Date().getTime(),
+                        userId: req.session.user.id,
+                        submitterEmail: req.session.user.email
+                    });
+                    req.flash('modal_' + req.body._form_id, {
+                        "type": "success",
+                        "message": req.lang._("general.successApproval", "", {
+                            subject: req.lang.text("general.create.successApproval", "", {
+                                module: req.moduleInfo.title
+                            }),
+                            transaction_id: changeRequestId.toUpperCase(),
+                            timestamp: moment(changePayload.LastModifiedAtTimeStamp).format(config.dateTimeFullFormat)
+                        })
+                    });
+                }
+                else {
+                    let newRecord = await helper.onFullyApprove(req, changeRequestId, "I");
+                    await notificationManager.submitNoApproval({
+                        operation: "I",
+                        viewUrl: `${req.fullHostUrl}/${req.moduleInfo.urlPrefix}/${changeRequestId}/view-log` ,
+                        requestId: changeRequestId,
+                        moduleName: req.moduleInfo.title,
+                        timestamp: new Date().getTime(),
+                        userId: req.session.user.id,
+                        submitterEmail: req.session.user.email
+                    });
+                    req.flash('modal_' + req.body._form_id, {
+                        "type": "success",
+                        "message": req.lang._("general.successNoApproval", "", {
+                            subject: req.lang.text("general.create.successNoApproval", "", {
+                                module: req.moduleInfo.title
+                            }),
+                            record_id: modelId.toUpperCase(),
+                            timestamp: moment(changePayload.LastModifiedAtTimeStamp).format(config.dateTimeFullFormat)
+                        })
+                    });
+                }
+                return res.redirect(`/${req.moduleInfo.urlPrefix}/create?_form_id=${req.body._form_id}`);
+            }
+        })
+    );
+};

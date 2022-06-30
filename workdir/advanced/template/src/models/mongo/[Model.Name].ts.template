@@ -1,0 +1,41 @@
+{% macro renderField(fields) %}
+    {% for field in fields %}
+    {% if field.Type == "" or field.Type == "_object" %}
+        {{ field.Name | safe }}: {
+            {{ renderField(field.Properties) | safe }}
+        },
+    {% else %}
+        {{ field.Name | safe }}: {{ field.Type | safe }},
+    {% endif %}
+    {% endfor %}
+{% endmacro %}
+const Mongoose = require('mongoose');
+
+export default async (mongoose) => {
+    const modelName = '{{ Model.Name | safe }}';
+    try {
+        // if already defined, return 
+        return mongoose.model(modelName);
+    } catch (ex) {
+        const Schema = Mongoose.Schema;
+        const definedSchema = new Schema({
+            _id: {{ Model._idType | safe }},
+            {{ renderField(Model.Fields) | safe }}
+        }, {
+            collection: '{{ Model.Name | safe }}',
+            toJSON: {
+                virtuals: false
+            }
+        });
+
+        {% for unique in Model.Uniques %}
+        definedSchema.index({
+            {% for field in unique.Fields %}
+            {{ field.Name | safe }}: {{ "1" if field.Ascending else "-1" }}
+            {% endfor %}
+        }, { unique: true });
+        {% endfor %}
+        
+        return mongoose.model(modelName, definedSchema);
+    }
+};

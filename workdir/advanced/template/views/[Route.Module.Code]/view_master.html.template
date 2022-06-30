@@ -1,0 +1,98 @@
+{{ readonly }}
+
+{% extends "template/operational.html" %}
+{% import "template/approval/detail_panel.html" as approvalPanel %}
+{% import "template/approval/action_panel.html" as actionPanel %}
+
+{% block content %}
+<ol class="breadcrumb" style="margin-bottom: 0px;">
+    <li class="breadcrumb-item"><a href="/#">Home</a></li>
+    <li class="breadcrumb-item"> <a href="/{{ moduleInfo.urlPrefix }}/#">{{ moduleInfo.title }}</a></li>
+    <li class="breadcrumb-item active">
+        {{ _lang.text("pageOperation." + operation, operation) | changeCase }} {{ moduleInfo.title }}
+    </li>
+</ol>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title mb-0">{{ _lang.text("pageOperation." + operation, operation) | changeCase }}
+            {{ moduleInfo.title }}</h2>
+    </div>
+</div>
+<div class="container-fluid">
+    <div id="ui-view">
+
+        <div class="card">
+            <div class="card-body">
+                <a href="/{{ _pageInfo.urlPrefix }}/{{ data._id | urlencode }}/update"
+                    class="btn btn-square btn-primary">
+                    <i class="fa fa-pencil"></i> Edit
+                </a>
+                <a href="/{{ _pageInfo.urlPrefix }}/{{ data._id | urlencode }}/delete"
+                    class="btn btn-square btn-danger">
+                    <i class="fa fa-remove"></i> Delete
+                </a>
+                <a href="/{{ _pageInfo.urlPrefix }}/{{ data._id | urlencode }}/log"
+                    class="btn btn-square btn-secondary">
+                    <i class="fa fa-clipboard"></i> Log
+                </a>
+            </div>
+        </div>
+        <form class="form-horizontal" method="POST">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            |$ _helper.renderHelper("viewField.html.template", _helper.appendObj(Model, { _readOnly: true }) ) | safe $|
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {% if operation != "A" %}
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button type="button" class="btn btn-secondary btn-square _btn-back"></button>
+                            <button class="btn btn-square btn-primary" {{"hidden" if operation =="V" else ""}}>
+                                {{ _form.operation(operation) }}
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    {{ actionPanel.render(approval) | safe }}
+                    {% endif %}
+                </div>
+            </div>
+            {% if operation == "A" or operation == "V" %}
+            {{ approvalPanel.render(approval, _user) | safe }}
+            {% endif %}
+            <input type="hidden" name="_form_id" value="{{ data._form_id }}" />
+        </form>
+    </div>
+</div>
+<div class="modal fade" role="dialog" id="_form_modal">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <p data-role="icon"></p>
+                <p data-role="content"></p>
+                <button class="btn btn-primary btn-square" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    let modalData = {{ modal | default (null) | dump | safe }};
+    $("[data-role='select2']").select2({
+        theme: "bootstrap"
+    });
+    decimalFormatInput($('input[data-role="number"]'));
+    if (modalData) {
+        window._u.showModal(modalData, $("#_form_modal"));
+    }
+</script>
+{{ approvalPanel.renderScript(_userToken, data._id) | safe }}
+
+{% endblock %}
