@@ -1,6 +1,6 @@
 import * as lo from 'lodash';
 
-const replaceFileName = (original: string, schema: any) => {
+export const replaceFileName = (original: string, schema: any) => {
   const regExp = new RegExp('\\[(.*?)\\]', 'gm');
 
   let result = original;
@@ -24,8 +24,4 @@ const replaceFileName = (original: string, schema: any) => {
   // }
   result = result.replace('.template', '');
   return result;
-};
-
-export default {
-  replace: replaceFileName,
 };

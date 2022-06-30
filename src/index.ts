@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import fileNameReplacer from './fileNameReplacer';
 import { getHelper } from './helper';
 import { htmlNunjucks } from './nunjucksConfiguration/htmlNunjucks';
 import { tsxNunjucks } from './nunjucksConfiguration/tsxNunjucks';
+import { replaceFileName } from './replaceFileName';
 import * as types from './types';
 
 import fs = require('fs');
@@ -43,25 +43,20 @@ const logger = winston.createLogger({
 });
 
 const renderPath = async (currentPath: string, option) => {
-  const replacedCurrentPath = fileNameReplacer.replace(
-    currentPath,
-    option.schema,
-  );
+  const replacedCurrentPath = replaceFileName(currentPath, option.schema);
   const dirs = fs.readdirSync(path.join(option.path.template, currentPath));
   for (const item of dirs) {
     const itemPath = path.join(option.path.template, currentPath, item);
     const itemOutputPath = path.join(
       option.path.output,
       replacedCurrentPath,
-      fileNameReplacer.replace(item, option.schema),
+      replaceFileName(item, option.schema),
     );
     const fileStat = fs.lstatSync(itemPath);
 
     if (fileStat.isFile()) {
       logger.info({ message: 'processing file: ' + itemPath });
-      const realExtension = path.extname(
-        fileNameReplacer.replace(item, option.schema),
-      );
+      const realExtension = path.extname(replaceFileName(item, option.schema));
       let fileContent = '';
       if (realExtension == '.html') {
         fileContent = htmlNunjucks.render(itemPath, {
