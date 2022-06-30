@@ -1,6 +1,6 @@
 {
-  "name": "@fendy3002/code-generator",
-  "version": "0.1.8",
+  "name": "@fendy3002/qz-code-generator",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "license": "MIT",
   "files": [
@@ -13,7 +13,7 @@
   "scripts": {
     "compile:advanced": "ts-node src/index.ts -t ./workdir/advanced ./workdir/advanced/schema",
     "compile:simple": "ts-node src/index.ts -t ./workdir/simple ./workdir/simple/schema",
-    "test": "mocha 'test/**/*.spec.ts'",
+    "test": "mocha '**/*.spec.ts'",
     "build": "tsc",
     "prepublish": "npm run build",
     "format": "prettier --write \"src/**/*.(ts|tsx)\""
