@@ -32,23 +32,18 @@ export const renderPath = (logger) => {
         const realExtension = path.extname(
           replaceFileName(item, option.schema),
         );
+        let nunjucksRenderer = defaultNunjucks;
         let fileContent = '';
         if (realExtension == '.html') {
-          fileContent = htmlNunjucks.render(itemPath, {
-            _helper: option.helper,
-            ...option.schema,
-          });
+          nunjucksRenderer = htmlNunjucks;
         } else if (realExtension == '.tsx') {
-          fileContent = tsxNunjucks.render(itemPath, {
-            _helper: option.helper,
-            ...option.schema,
-          });
-        } else {
-          fileContent = defaultNunjucks.render(itemPath, {
-            _helper: option.helper,
-            ...option.schema,
-          });
+          nunjucksRenderer = tsxNunjucks;
         }
+        fileContent = nunjucksRenderer.render(itemPath, {
+          __: option.helper,
+          _helper: option.helper,
+          ...option.schema,
+        });
         fileContent = fileContent.replace(/\n\s*\n/g, '\n');
 
         const prettierFormat = supportedPrettierFileFormat.filter(
