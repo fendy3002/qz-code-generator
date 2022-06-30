@@ -15,7 +15,10 @@ export const getHelper = async (context: Context) => {
         extensionFile,
       );
       const extensionRaw = (await import(extensionFullPath)).default;
-      const extension = await extensionRaw(context.schema);
+      const extension = await extensionRaw(
+        context.schema,
+        context.schemaOption,
+      );
       let extensionName = '';
       if (!extension.name) {
         extensionName = path.basename(extensionFile);
