@@ -15,7 +15,7 @@
     "test-compile:simple": "ts-node ./src/exec.ts ./test/simple",
     "test-compile:advanced": "ts-node ./src/exec.ts ./test/advanced",
     "build": "rm -rf ./dist && tsc",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "format": "prettier --write \"src/**/*.(ts|tsx)\""
   },
   "devDependencies": {
