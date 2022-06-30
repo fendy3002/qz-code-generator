@@ -1,108 +1,22 @@
 #!/usr/bin/env node
+import * as commandLineArgs from 'command-line-args';
+import * as fs from 'fs';
+import * as lo from 'lodash';
+import * as path from 'path';
+
 import { getHelper } from './helper';
+import { makeLogger } from './makeLogger';
+import { defaultNunjucks } from './nunjucksConfiguration/defaultNunjucks';
 import { htmlNunjucks } from './nunjucksConfiguration/htmlNunjucks';
-import { tsxNunjucks } from './nunjucksConfiguration/tsxNunjucks';
-import { replaceFileName } from './replaceFileName';
+import { renderPath } from './renderPath';
 import * as types from './types';
-
-import fs = require('fs');
-import path = require('path');
-import commandLineArgs = require('command-line-args');
-import winston = require('winston');
-
-import nunjucks = require('nunjucks');
-import prettier = require('prettier');
-import lo = require('lodash');
 
 const optionDefinitions = [
   { name: 'schema', alias: 's', type: String, defaultOption: true },
   { name: 'template', alias: 't', type: String },
 ];
 
-const supportedPrettierFileFormat = [
-  { ext: '.ts', parser: 'typescript' },
-  { ext: '.js', parser: 'babel' },
-  //    { ext: ".html", parser: "html" }
-];
-
-const defaultNunjucks = nunjucks.configure({});
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.json({
-      space: 2,
-    }),
-  ),
-  transports: [
-    //
-    // - Write all logs with level `error` and below to `error.log`
-    // - Write all logs with level `info` and below to `combined.log`
-    //
-    new winston.transports.Console({}),
-  ],
-});
-
-const renderPath = async (currentPath: string, option) => {
-  const replacedCurrentPath = replaceFileName(currentPath, option.schema);
-  const dirs = fs.readdirSync(path.join(option.path.template, currentPath));
-  for (const item of dirs) {
-    const itemPath = path.join(option.path.template, currentPath, item);
-    const itemOutputPath = path.join(
-      option.path.output,
-      replacedCurrentPath,
-      replaceFileName(item, option.schema),
-    );
-    const fileStat = fs.lstatSync(itemPath);
-
-    if (fileStat.isFile()) {
-      logger.info({ message: 'processing file: ' + itemPath });
-      const realExtension = path.extname(replaceFileName(item, option.schema));
-      let fileContent = '';
-      if (realExtension == '.html') {
-        fileContent = htmlNunjucks.render(itemPath, {
-          _helper: option.helper,
-          ...option.schema,
-        });
-      } else if (realExtension == '.tsx') {
-        fileContent = tsxNunjucks.render(itemPath, {
-          _helper: option.helper,
-          ...option.schema,
-        });
-      } else {
-        fileContent = defaultNunjucks.render(itemPath, {
-          _helper: option.helper,
-          ...option.schema,
-        });
-      }
-      fileContent = fileContent.replace(/\n\s*\n/g, '\n');
-
-      const prettierFormat = supportedPrettierFileFormat.filter(
-        (k) => k.ext == realExtension,
-      );
-      if (
-        option.schemaOption.prettier &&
-        prettierFormat.length > 0 &&
-        !option.schemaOption.excludePrettier.some((k) => k == realExtension)
-      ) {
-        fileContent = prettier.format(fileContent, {
-          parser: prettierFormat[0].parser,
-          arrowParens: 'always',
-          tabWidth: 4,
-          proseWrap: 'never',
-          ...option.schemaOption.prettier,
-        });
-      }
-      fs.writeFileSync(itemOutputPath, fileContent);
-    } else {
-      if (!fs.existsSync(itemOutputPath)) {
-        fs.mkdirSync(itemOutputPath, {
-          recursive: true,
-        });
-      }
-      await renderPath(path.join(currentPath, item), option);
-    }
-  }
-};
+const logger = makeLogger();
 
 const doTask = async () => {
   const option = commandLineArgs(optionDefinitions);
@@ -166,7 +80,7 @@ const doTask = async () => {
     };
     const helper = await getHelper(context);
     context.helper = helper;
-    await renderPath('', context);
+    await renderPath(logger)('', context);
   }
 };
 doTask();
