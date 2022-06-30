@@ -11,9 +11,9 @@
     "access": "public"
   },
   "scripts": {
-    "compile:advanced": "ts-node src/index.ts -t ./workdir/advanced ./workdir/advanced/schema",
-    "compile:simple": "ts-node src/index.ts -t ./workdir/simple ./workdir/simple/schema",
     "test": "jest --runInBand",
+    "test-compile:simple": "ts-node ./src/exec.ts ./test/simple",
+    "test-compile:advanced": "ts-node ./src/exec.ts ./test/advanced",
     "build": "tsc",
     "prepublish": "npm run build",
     "format": "prettier --write \"src/**/*.(ts|tsx)\""

@@ -1,4 +1,4 @@
-import nunjucks from 'nunjucks';
+import * as nunjucks from 'nunjucks';
 
 export const htmlNunjucks = nunjucks.configure({
   tags: {
