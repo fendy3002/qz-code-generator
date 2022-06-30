@@ -1,10 +1,7 @@
-import * as assert from 'assert';
-import * as mocha from 'mocha';
-
 import { replaceFileName } from './replaceFileName';
 
-mocha.describe('fileNameReplacer', function () {
-  mocha.it('should replace', async function () {
+describe('fileNameReplacer', function () {
+  it('should replace', async function () {
     const schema = {
       Route: {
         Module: {
@@ -22,7 +19,7 @@ mocha.describe('fileNameReplacer', function () {
     let index = 0;
     for (const fileName of fileNames) {
       const replacedFileName = replaceFileName(fileName, schema);
-      assert.equal(replacedFileName, expected[index]);
+      expect(replacedFileName).toBe(expected[index]);
       index++;
     }
   });
