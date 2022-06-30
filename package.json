@@ -14,7 +14,7 @@
     "test": "jest --runInBand",
     "test-compile:simple": "ts-node ./src/exec.ts ./test/simple",
     "test-compile:advanced": "ts-node ./src/exec.ts ./test/advanced",
-    "build": "tsc",
+    "build": "rm -rf ./dist && tsc",
     "prepublish": "npm run build",
     "format": "prettier --write \"src/**/*.(ts|tsx)\""
   },
