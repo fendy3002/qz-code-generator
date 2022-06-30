@@ -1,10 +1,12 @@
-import path = require('path');
-import fs = require('fs');
 import { error } from '@fendy3002/qz-node';
-import * as types from './types';
+import * as changeCase from 'change-case';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import nunjucks = require('nunjucks');
-const getHelper = async (context: types.Context) => {
+import { Context } from '../types';
+import { appendObject, asArray, inArray, isArray, isObject } from './index';
+
+export const getHelper = async (context: Context) => {
   const extensions: any = {};
   if (fs.existsSync(context.path.extension)) {
     for (const extensionFile of fs.readdirSync(context.path.extension)) {
@@ -45,36 +47,15 @@ const getHelper = async (context: types.Context) => {
         .message(`Problem rendering helper "${helperName}"`);
     }
   };
-  const isArr = (val: any) => {
-    return Array.isArray(val);
-  };
-  const asArr = (val: any) => {
-    if (isArr(val)) {
-      return val;
-    } else {
-      return [val];
-    }
-  };
-  const inArray = (stack: [any], needle: any) => {
-    return stack.some(needle);
-  };
-  const isObj = (val: any) => {
-    return typeof val == 'object';
-  };
-  const appendObj = (original, additional) => {
-    return {
-      ...original,
-      ...additional,
-    };
-  };
 
   const helper = {
     renderHelper,
-    isArr,
-    asArr,
-    inArray,
-    isObj,
-    appendObj,
+    isArray: isArray,
+    asArray: asArray,
+    inArray: inArray,
+    isObject: isObject,
+    appendObject: appendObject,
+    changeCase: changeCase,
     ...extensions,
     print: {
       open: '{{',
@@ -87,4 +68,3 @@ const getHelper = async (context: types.Context) => {
   };
   return helper;
 };
-export default getHelper;

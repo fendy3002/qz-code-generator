@@ -1,6 +1,7 @@
-import lo = require('lodash');
+import * as lo from 'lodash';
+
 const replaceFileName = (original: string, schema: any) => {
-  let regExp = new RegExp('\\[(.*?)\\]', 'gm');
+  const regExp = new RegExp('\\[(.*?)\\]', 'gm');
 
   let result = original;
   let match;

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import fileNameReplacer from './fileNameReplacer';
+import { getHelper } from './helper';
+import * as types from './types';
 
 import fs = require('fs');
 import path = require('path');
@@ -8,9 +11,6 @@ import winston = require('winston');
 import nunjucks = require('nunjucks');
 import prettier = require('prettier');
 import lo = require('lodash');
-import fileNameReplacer from './fileNameReplacer';
-import getHelper from './helper';
-import * as types from './types';
 
 const optionDefinitions = [
   { name: 'schema', alias: 's', type: String, defaultOption: true },
@@ -23,7 +23,7 @@ const supportedPrettierFileFormat = [
   //    { ext: ".html", parser: "html" }
 ];
 
-let htmlNunjucks = nunjucks.configure({
+const htmlNunjucks = nunjucks.configure({
   tags: {
     blockStart: '|%',
     blockEnd: '%|',
@@ -33,7 +33,7 @@ let htmlNunjucks = nunjucks.configure({
     commentEnd: '#|',
   },
 });
-let tsxNunjucks = nunjucks.configure({
+const tsxNunjucks = nunjucks.configure({
   tags: {
     blockStart: '|%',
     blockEnd: '%|',
@@ -43,7 +43,7 @@ let tsxNunjucks = nunjucks.configure({
     commentEnd: '#|',
   },
 });
-let defaultNunjucks = nunjucks.configure({});
+const defaultNunjucks = nunjucks.configure({});
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -77,7 +77,7 @@ const renderPath = async (currentPath: string, option) => {
 
     if (fileStat.isFile()) {
       logger.info({ message: 'processing file: ' + itemPath });
-      let realExtension = path.extname(
+      const realExtension = path.extname(
         fileNameReplacer.replace(item, option.schema),
       );
       let fileContent = '';
@@ -99,7 +99,7 @@ const renderPath = async (currentPath: string, option) => {
       }
       fileContent = fileContent.replace(/\n\s*\n/g, '\n');
 
-      let prettierFormat = supportedPrettierFileFormat.filter(
+      const prettierFormat = supportedPrettierFileFormat.filter(
         (k) => k.ext == realExtension,
       );
       if (
@@ -166,7 +166,7 @@ const doTask = async () => {
     }
 
     logger.info('schema', schemaObj);
-    let context: types.Context = {
+    const context: types.Context = {
       ...option,
       path: {
         helper: helperDir,

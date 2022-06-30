@@ -1,8 +1,8 @@
-import * as changeCase from 'change-case';
 import * as dateFns from 'date-fns';
 import * as R from 'ramda';
-import { randomInt } from './helpers/randomInt';
-import { shuffleArray } from './helpers/shuffleArray';
+
+import { randomInt } from './helper/randomInt';
+import { shuffleArray } from './helper/shuffleArray';
 
 const generateDate = R.compose(
   dateFns.formatISO,
