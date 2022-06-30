@@ -15,7 +15,8 @@
     "compile:simple": "ts-node src/index.ts -t ./workdir/simple ./workdir/simple/schema",
     "test": "mocha 'test/**/*.spec.ts'",
     "build": "tsc",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "format": "prettier --write \"src/**/*.(ts|tsx)\" \"__tests__/**/*.(ts|tsx)\""
   },
   "devDependencies": {
     "@types/express": "^4.17.1",
