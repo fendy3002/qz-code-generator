@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import fileNameReplacer from './fileNameReplacer';
 import { getHelper } from './helper';
+import { htmlNunjucks } from './nunjucksConfiguration/htmlNunjucks';
+import { tsxNunjucks } from './nunjucksConfiguration/tsxNunjucks';
 import * as types from './types';
 
 import fs = require('fs');
@@ -23,26 +25,6 @@ const supportedPrettierFileFormat = [
   //    { ext: ".html", parser: "html" }
 ];
 
-const htmlNunjucks = nunjucks.configure({
-  tags: {
-    blockStart: '|%',
-    blockEnd: '%|',
-    variableStart: '|$',
-    variableEnd: '$|',
-    commentStart: '|#',
-    commentEnd: '#|',
-  },
-});
-const tsxNunjucks = nunjucks.configure({
-  tags: {
-    blockStart: '|%',
-    blockEnd: '%|',
-    variableStart: '|$',
-    variableEnd: '$|',
-    commentStart: '|#',
-    commentEnd: '#|',
-  },
-});
 const defaultNunjucks = nunjucks.configure({});
 const logger = winston.createLogger({
   level: 'info',
