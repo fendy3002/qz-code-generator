@@ -1,6 +1,6 @@
 {
   "name": "@fendy3002/qz-code-generator",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "dist/index.js",
   "license": "MIT",
   "files": [
@@ -8,7 +8,7 @@
     "src/**/*"
   ],
   "bin": {
-    "create": "dist/creatApp.js"
+    "qz-code-generator-create": "dist/creatApp.js"
   },
   "publishConfig": {
     "access": "public"
