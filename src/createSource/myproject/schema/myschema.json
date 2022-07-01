@@ -1,0 +1,25 @@
+{
+  "option": {
+    "prettier": {
+      "tabWidth": 2
+    },
+    "excludePrettier": []
+  },
+  "schema": {
+    "name": "myschema",
+    "snakeName": "my-schema",
+    "underscodeName": "my_schema",
+    "fields": [
+      {
+        "name": "field1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "field2",
+        "type": "number",
+        "required": false
+      }
+    ]
+  }
+}

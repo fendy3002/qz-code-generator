@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      Title: |$ name $|
+    </title>
+  </head>
+  <body>
+    <div>Fields:</div>
+    <ul>
+      |% for field in fields %|
+      <li>
+        Name: |$ field.name $|<br/>
+        Type: |$ field.type $|<br/>
+        Required: |$ field.required $|
+      </li>
+      |%  endfor %|
+    </ul>
+  </body>
+</html>

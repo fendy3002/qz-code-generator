@@ -7,6 +7,9 @@
     "dist/**/*",
     "src/**/*"
   ],
+  "bin": {
+    "create": "dist/creatApp.js"
+  },
   "publishConfig": {
     "access": "public"
   },

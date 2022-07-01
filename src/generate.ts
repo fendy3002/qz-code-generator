@@ -8,8 +8,8 @@ import { GenerateProps } from './types/GenerateProps';
 const logger = makeLogger();
 
 export const generate = async (props: GenerateProps) => {
-  logger.info('process.cwd(): ', process.cwd());
-  const startDir = process.cwd();
+  logger.info('startDir: ', props.startDir);
+  const startDir = props.startDir;
   const helperDir = path.join(startDir, props.templatePath, 'helper');
   const templateDir = path.join(startDir, props.templatePath, 'template');
   const outputDir = path.join(startDir, props.templatePath, 'output');
