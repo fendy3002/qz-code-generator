@@ -7,9 +7,6 @@
     "dist/**/*",
     "src/**/*"
   ],
-  "bin": {
-    "qz-code-generator-create": "dist/creatApp.js"
-  },
   "publishConfig": {
     "access": "public"
   },
