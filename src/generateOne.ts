@@ -1,21 +1,18 @@
 import * as path from 'path';
 
 import { loadSchemaFolder } from './loadSchemaFolder';
-import { makeLogger } from './makeLogger';
 import { renderPath } from './renderPath';
 import { GenerateOneProps } from './types/GenerateOneProps';
 
-const logger = makeLogger();
-
 export const generateOne = async (props: GenerateOneProps) => {
   const startDir = path.join(props.startDir, props.templatePath);
-  logger.info('processing: ', startDir);
+  console.info('processing: ', startDir);
   const helperDir = path.join(startDir, 'helper');
   const templateDir = path.join(startDir, 'template');
   const outputDir = path.join(startDir, 'output');
   const extensionDir = path.join(startDir, 'extension');
   const schemaPath = path.join(startDir, 'schema');
-  logger.info({
+  console.debug({
     helperDir,
     templateDir,
     outputDir,
@@ -24,7 +21,6 @@ export const generateOne = async (props: GenerateOneProps) => {
   });
 
   const processingSchemas = await loadSchemaFolder({
-    logger: logger,
     helperDir: helperDir,
     templateDir: templateDir,
     outputDir: outputDir,
@@ -33,6 +29,6 @@ export const generateOne = async (props: GenerateOneProps) => {
   });
 
   for (const schema of processingSchemas) {
-    await renderPath(logger)('', schema.context);
+    await renderPath('', schema.context);
   }
 };

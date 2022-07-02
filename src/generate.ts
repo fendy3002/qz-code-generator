@@ -32,7 +32,7 @@ export const generate = async (props: GenerateProps) => {
   for (const processingProject of processingProjects) {
     await generateOne({
       startDir: props.startDir,
-      templatePath: processingProject,
+      templatePath: projects[processingProject],
     });
   }
 };

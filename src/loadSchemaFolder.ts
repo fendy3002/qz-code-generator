@@ -11,7 +11,6 @@ import { LoadSchemaResult } from './types/LoadSchemaResult';
 import winston = require('winston');
 
 export const loadSchemaFolder = async (props: {
-  logger: winston.Logger;
   schemaPath: string;
   helperDir: string;
   templateDir: string;
@@ -34,21 +33,14 @@ export const loadSchemaFolder = async (props: {
 };
 
 export const loadSchema = async (props: {
-  logger: winston.Logger;
   schemaPaths: string[];
   helperDir: string;
   templateDir: string;
   outputDir: string;
   extensionDir: string;
 }) => {
-  const {
-    logger,
-    schemaPaths,
-    helperDir,
-    templateDir,
-    outputDir,
-    extensionDir,
-  } = props;
+  const { schemaPaths, helperDir, templateDir, outputDir, extensionDir } =
+    props;
   const result: LoadSchemaResult = [];
   for (const schemaFilePath of schemaPaths) {
     let schemaObj = null;
@@ -59,7 +51,7 @@ export const loadSchema = async (props: {
       schemaObj = require(schemaFilePath).default;
     }
 
-    logger.info('schema', schemaObj);
+    console.info('schema', schemaObj);
     const context: Context = {
       path: {
         helper: helperDir,

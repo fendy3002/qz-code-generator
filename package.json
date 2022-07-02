@@ -12,8 +12,10 @@
   },
   "scripts": {
     "test": "jest --runInBand",
-    "test-compile": "ts-node ./src/exec generate -l $(npm prefix)/test",
-    "test-compile:advanced": "ts-node ./src/exec.ts ./test/advanced",
+    "test-list": "ts-node ./src/exec list -l $(npm prefix)/test",
+    "test-generate": "ts-node ./src/exec generate -l $(npm prefix)/test",
+    "test-generate:simple": "ts-node ./src/exec generate -l $(npm prefix)/test simple",
+    "test-generate:advanced": "ts-node ./src/exec generate -l $(npm prefix)/test advanced",
     "build": "rm -rf ./dist && tsc",
     "prepare": "npm run build",
     "format": "prettier --write \"src/**/*.(ts|tsx)\" && prettier --write \"test/**/*.(ts|tsx)\""
