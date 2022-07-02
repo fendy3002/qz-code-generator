@@ -8,8 +8,6 @@ import { htmlNunjucks } from './nunjucksConfiguration/htmlNunjucks';
 import { Context } from './types';
 import { LoadSchemaResult } from './types/LoadSchemaResult';
 
-import winston = require('winston');
-
 export const loadSchemaFolder = async (props: {
   schemaPath: string;
   helperDir: string;
