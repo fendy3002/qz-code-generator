@@ -16,6 +16,7 @@
     "test-generate": "ts-node ./src/exec generate -l $(npm prefix)/test",
     "test-generate:simple": "ts-node ./src/exec generate -l $(npm prefix)/test simple",
     "test-generate:advanced": "ts-node ./src/exec generate -l $(npm prefix)/test advanced",
+    "test-make:extension": "ts-node ./src/exec make:extension -l $(npm prefix)/test",
     "build": "rm -rf ./dist && tsc",
     "prepare": "npm run build",
     "format": "prettier --write \"src/**/*.(ts|tsx)\" && prettier --write \"test/**/*.(ts|tsx)\""
@@ -27,6 +28,7 @@
     "@types/lodash": "^4.14.144",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.12",
+    "@types/prompts": "^2.0.14",
     "@types/ramda": "^0.28.14",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
     "eslint": "^8.18.0",
@@ -45,6 +47,7 @@
     "lodash": "^4.17.15",
     "nunjucks": "^3.2.0",
     "prettier": "^2.7.1",
+    "prompts": "^2.4.2",
     "ramda": "^0.28.0",
     "ts-node": "^8.6.2"
   }
