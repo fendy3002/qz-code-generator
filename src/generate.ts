@@ -1,38 +1,38 @@
 import * as path from 'path';
+import * as ramda from 'ramda';
 
-import { loadSchemaFolder } from './loadSchemaFolder';
-import { makeLogger } from './makeLogger';
-import { renderPath } from './renderPath';
+import { generateOne } from './generateOne';
 import { GenerateProps } from './types/GenerateProps';
 
-const logger = makeLogger();
-
 export const generate = async (props: GenerateProps) => {
-  logger.info('startDir: ', props.startDir);
-  const startDir = props.startDir;
-  const helperDir = path.join(startDir, props.templatePath, 'helper');
-  const templateDir = path.join(startDir, props.templatePath, 'template');
-  const outputDir = path.join(startDir, props.templatePath, 'output');
-  const extensionDir = path.join(startDir, props.templatePath, 'extension');
-  const schemaPath = path.join(startDir, props.templatePath, 'schema');
-  logger.info({
-    helperDir,
-    templateDir,
-    outputDir,
-    extensionDir,
-    schemaPath,
-  });
-
-  const processingSchemas = await loadSchemaFolder({
-    logger: logger,
-    helperDir: helperDir,
-    templateDir: templateDir,
-    outputDir: outputDir,
-    extensionDir: extensionDir,
-    schemaPath: schemaPath,
-  });
-
-  for (const schema of processingSchemas) {
-    await renderPath(logger)('', schema.context);
+  console.info(
+    'START: generate for projects: ' +
+      (props.projectNames?.length > 0
+        ? props.projectNames.join(', ')
+        : '[ALL]'),
+  );
+  const projectsFile = path.join(props.startDir, 'projects.ts');
+  const projects = await (await import(projectsFile)).projects();
+  const registeredProjectNames = Object.keys(projects);
+  let processingProjects = registeredProjectNames;
+  if (props.projectNames && props.projectNames.length > 0) {
+    // verify first if any projects is not recognized
+    const notFoundProjects = ramda.difference(
+      props.projectNames,
+      registeredProjectNames,
+    );
+    if (notFoundProjects.length > 0) {
+      console.error(
+        `Project ${notFoundProjects.join(', ')} is missing in projects.ts file`,
+      );
+      return;
+    }
+    processingProjects = props.projectNames;
+  }
+  for (const processingProject of processingProjects) {
+    await generateOne({
+      startDir: props.startDir,
+      templatePath: processingProject,
+    });
   }
 };

@@ -12,11 +12,11 @@
   },
   "scripts": {
     "test": "jest --runInBand",
-    "test-compile:simple": "ts-node ./src/exec.ts ./test/simple",
+    "test-compile": "ts-node ./src/exec generate -l $(npm prefix)/test",
     "test-compile:advanced": "ts-node ./src/exec.ts ./test/advanced",
     "build": "rm -rf ./dist && tsc",
     "prepare": "npm run build",
-    "format": "prettier --write \"src/**/*.(ts|tsx)\""
+    "format": "prettier --write \"src/**/*.(ts|tsx)\" && prettier --write \"test/**/*.(ts|tsx)\""
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",

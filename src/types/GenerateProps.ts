@@ -1,4 +1,4 @@
 export interface GenerateProps {
-  templatePath: string;
+  projectNames?: string[];
   startDir: string;
 }
