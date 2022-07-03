@@ -3,6 +3,7 @@ import { readdirSync } from 'fs';
 import * as path from 'path';
 import * as prompts from 'prompts';
 
+import { FOLDER_PROJECTS } from '../const';
 import { makeExtension as makeExtensionLib } from '../makeExtension';
 
 const optionDefinitions = [
@@ -18,13 +19,13 @@ export const makeExtension = async (argv: any[]) => {
   const option = commandLineArgs(optionDefinitions, { argv });
   const startDir = option.startDir ?? process.cwd();
 
-  const projectFileNames = readdirSync(path.join(startDir, 'projects'));
+  const projectFileNames = readdirSync(path.join(startDir, FOLDER_PROJECTS));
 
   let selectedProject: string;
   if (option.project) {
     if (!projectFileNames.some((k) => k == option.project)) {
       console.error(
-        `ERROR: project ${option.project} is does not exists in projects folder`,
+        `ERROR: project ${option.project} is does not exists in ${FOLDER_PROJECTS} folder`,
       );
       return;
     }

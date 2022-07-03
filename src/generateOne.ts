@@ -1,16 +1,21 @@
 import * as path from 'path';
 
+import { FOLDER_EXTENSIONS, FOLDER_PROJECTS } from './const';
 import { loadSchemaFolder } from './loadSchemaFolder';
 import { renderPath } from './renderPath';
 import { GenerateOneProps } from './types/GenerateOneProps';
 
 export const generateOne = async (props: GenerateOneProps) => {
-  const startDir = path.join(props.startDir, props.templatePath);
+  const startDir = path.join(
+    props.startDir,
+    FOLDER_PROJECTS,
+    props.templatePath,
+  );
   console.info('processing: ', startDir);
   const helperDir = path.join(startDir, 'helper');
   const templateDir = path.join(startDir, 'template');
   const outputDir = path.join(startDir, 'output');
-  const extensionDir = path.join(startDir, 'extension');
+  const extensionDir = path.join(startDir, FOLDER_EXTENSIONS);
   const schemaPath = path.join(startDir, 'schema');
   console.debug({
     helperDir,

@@ -2,6 +2,7 @@ import { readdirSync } from 'fs';
 import * as path from 'path';
 import * as ramda from 'ramda';
 
+import { FOLDER_PROJECTS } from './const';
 import { generateOne } from './generateOne';
 import { GenerateProps } from './types/GenerateProps';
 
@@ -12,7 +13,9 @@ export const generate = async (props: GenerateProps) => {
         ? props.projectNames.join(', ')
         : '[ALL]'),
   );
-  const projectFileNames = readdirSync(path.join(props.startDir, 'projects'));
+  const projectFileNames = readdirSync(
+    path.join(props.startDir, FOLDER_PROJECTS),
+  );
   let processingProjects = projectFileNames;
   if (props.projectNames && props.projectNames.length > 0) {
     // verify first if any projects is not recognized
@@ -22,7 +25,9 @@ export const generate = async (props: GenerateProps) => {
     );
     if (notFoundProjects.length > 0) {
       console.error(
-        `Project ${notFoundProjects.join(', ')} is missing in projects folder`,
+        `Project ${notFoundProjects.join(
+          ', ',
+        )} is missing in ${FOLDER_PROJECTS} folder`,
       );
       return;
     }
