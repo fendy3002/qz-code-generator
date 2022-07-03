@@ -1,3 +1,4 @@
+import { readdirSync } from 'fs';
 import * as path from 'path';
 import * as ramda from 'ramda';
 
@@ -11,19 +12,17 @@ export const generate = async (props: GenerateProps) => {
         ? props.projectNames.join(', ')
         : '[ALL]'),
   );
-  const projectsFile = path.join(props.startDir, 'projects.ts');
-  const projects = await (await import(projectsFile)).projects();
-  const registeredProjectNames = Object.keys(projects);
-  let processingProjects = registeredProjectNames;
+  const projectFileNames = readdirSync(path.join(props.startDir, 'projects'));
+  let processingProjects = projectFileNames;
   if (props.projectNames && props.projectNames.length > 0) {
     // verify first if any projects is not recognized
     const notFoundProjects = ramda.difference(
       props.projectNames,
-      registeredProjectNames,
+      projectFileNames,
     );
     if (notFoundProjects.length > 0) {
       console.error(
-        `Project ${notFoundProjects.join(', ')} is missing in projects.ts file`,
+        `Project ${notFoundProjects.join(', ')} is missing in projects folder`,
       );
       return;
     }
@@ -32,7 +31,7 @@ export const generate = async (props: GenerateProps) => {
   for (const processingProject of processingProjects) {
     await generateOne({
       startDir: props.startDir,
-      templatePath: projects[processingProject],
+      templatePath: processingProject,
     });
   }
 };

@@ -1,4 +1,5 @@
 import * as commandLineArgs from 'command-line-args';
+import { readdirSync } from 'fs';
 import * as path from 'path';
 import * as prompts from 'prompts';
 
@@ -17,31 +18,31 @@ export const makeExtension = async (argv: any[]) => {
   const option = commandLineArgs(optionDefinitions, { argv });
   const startDir = option.startDir ?? process.cwd();
 
-  const projectsFile = path.join(startDir, 'projects.ts');
-  const projects = await (await import(projectsFile)).projects();
-  const registeredProjectNames = Object.keys(projects);
+  const projectFileNames = readdirSync(path.join(startDir, 'projects'));
 
   let selectedProject: string;
   if (option.project) {
-    if (!registeredProjectNames.some((k) => k == option.project)) {
+    if (!projectFileNames.some((k) => k == option.project)) {
       console.error(
-        `ERROR: project ${option.project} is does not exists in projects.ts`,
+        `ERROR: project ${option.project} is does not exists in projects folder`,
       );
       return;
     }
     selectedProject = option.project;
   } else {
-    const promptsResult = await prompts({
-      type: 'select',
-      name: 'value',
-      message: 'Choose the project to create extension to:',
-      choices: registeredProjectNames.map((k) => ({
-        title: k,
-        value: k,
-      })),
-      initial: 0,
-    });
-    selectedProject = promptsResult.value;
+    while (!selectedProject) {
+      const promptsResult = await prompts({
+        type: 'select',
+        name: 'value',
+        message: 'Choose the project to create extension to:',
+        choices: projectFileNames.map((k) => ({
+          title: k,
+          value: k,
+        })),
+        initial: 0,
+      });
+      selectedProject = promptsResult.value;
+    }
   }
 
   let extensionName: string;
@@ -58,7 +59,7 @@ export const makeExtension = async (argv: any[]) => {
     }
   }
   await makeExtensionLib({
-    startDir: path.join(startDir, projects[selectedProject]),
+    startDir: path.join(startDir, selectedProject),
     selectedProject: selectedProject,
     extensionName: extensionName,
   });
