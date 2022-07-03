@@ -1,3 +1,4 @@
+import { existsSync, rmdirSync } from 'fs';
 import * as path from 'path';
 
 import { FOLDER_EXTENSIONS, FOLDER_OUTPUT, FOLDER_PROJECTS } from './const';
@@ -18,7 +19,6 @@ export const generateOne = async (props: GenerateOneProps) => {
     props.startDir,
     FOLDER_OUTPUT,
     props.templatePath,
-    'output',
   );
   const extensionDir = path.join(startDir, FOLDER_EXTENSIONS);
   const schemaPath = path.join(startDir, 'schema');
@@ -37,6 +37,11 @@ export const generateOne = async (props: GenerateOneProps) => {
     extensionDir: extensionDir,
     schemaPath: schemaPath,
   });
+
+  if (existsSync(outputDir)) {
+    // remove the project's output dir first
+    rmdirSync(outputDir, { recursive: true });
+  }
 
   for (const schema of processingSchemas) {
     await renderPath('', schema.context);
