@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 
 import { FOLDER_EXTENSIONS, FOLDER_PROJECTS } from '../const';
@@ -6,13 +6,17 @@ import { MakeExtensionProps } from '../types/MakeExtensionProps';
 
 export const makeExtension = async (props: MakeExtensionProps) => {
   const extensionFileName = `${props.extensionName}.ts`;
-  const extensionFilePath = path.join(
+  const extensionFolderPath = path.join(
     props.startDir,
     FOLDER_PROJECTS,
     props.selectedProject,
     FOLDER_EXTENSIONS,
-    extensionFileName,
   );
+  if (!existsSync(extensionFolderPath)) {
+    mkdirSync(extensionFolderPath, { recursive: true });
+  }
+  const extensionFilePath = path.join(extensionFolderPath, extensionFileName);
+
   if (existsSync(extensionFilePath)) {
     console.error(`Extension file ${extensionFilePath} already exists`);
   }

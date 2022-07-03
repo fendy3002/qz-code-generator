@@ -60,7 +60,7 @@ export const makeExtension = async (argv: any[]) => {
     }
   }
   await makeExtensionLib({
-    startDir: path.join(startDir, selectedProject),
+    startDir: startDir,
     selectedProject: selectedProject,
     extensionName: extensionName,
   });
