@@ -14,4 +14,4 @@ If the `project_name` is not supplied, it'll create one in a folder named `codeg
 
 # Schema
 
-The first is a schema.
+The first is schemas, located at `projects/myproject/schema` folder. There's one schema pre-generated named `myschema.json`. It is a json file, with content .

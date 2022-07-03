@@ -3,6 +3,7 @@ export interface Context {
     helper: string;
     template: string;
     output: string;
+    option: string;
     extension: string;
   };
   schemaOption: {

@@ -1,4 +1,4 @@
-import { existsSync, rmdirSync } from 'fs';
+import { existsSync, rmSync } from 'fs';
 import * as path from 'path';
 
 import { FOLDER_EXTENSIONS, FOLDER_OUTPUT, FOLDER_PROJECTS } from './const';
@@ -22,10 +22,12 @@ export const generateOne = async (props: GenerateOneProps) => {
   );
   const extensionDir = path.join(startDir, FOLDER_EXTENSIONS);
   const schemaPath = path.join(startDir, 'schema');
+  const optionPath = path.join(startDir, 'option.json');
   console.debug({
     helperDir,
     templateDir,
     outputDir,
+    optionPath,
     extensionDir,
     schemaPath,
   });
@@ -34,13 +36,14 @@ export const generateOne = async (props: GenerateOneProps) => {
     helperDir: helperDir,
     templateDir: templateDir,
     outputDir: outputDir,
+    optionPath: optionPath,
     extensionDir: extensionDir,
     schemaPath: schemaPath,
   });
 
   if (existsSync(outputDir)) {
     // remove the project's output dir first
-    rmdirSync(outputDir, { recursive: true });
+    rmSync(outputDir, { recursive: true });
   }
 
   for (const schema of processingSchemas) {

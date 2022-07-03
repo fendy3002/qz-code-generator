@@ -12,6 +12,7 @@ export const loadSchemaFolder = async (props: {
   schemaPath: string;
   helperDir: string;
   templateDir: string;
+  optionPath: string;
   outputDir: string;
   extensionDir: string;
 }) => {
@@ -33,12 +34,20 @@ export const loadSchemaFolder = async (props: {
 export const loadSchema = async (props: {
   schemaPaths: string[];
   helperDir: string;
+  optionPath: string;
   templateDir: string;
   outputDir: string;
   extensionDir: string;
 }) => {
-  const { schemaPaths, helperDir, templateDir, outputDir, extensionDir } =
-    props;
+  const {
+    schemaPaths,
+    optionPath,
+    helperDir,
+    templateDir,
+    outputDir,
+    extensionDir,
+  } = props;
+  const option = JSON.parse(fs.readFileSync(optionPath, 'utf8'));
   const result: LoadSchemaResult = [];
   for (const schemaFilePath of schemaPaths) {
     let schemaObj = null;
@@ -54,6 +63,7 @@ export const loadSchema = async (props: {
       path: {
         helper: helperDir,
         template: templateDir,
+        option: optionPath,
         output: outputDir,
         extension: extensionDir,
       },
@@ -62,9 +72,9 @@ export const loadSchema = async (props: {
           prettier: null,
           excludePrettier: [],
         },
-        schemaObj.option,
+        option,
       ),
-      schema: schemaObj.schema,
+      schema: schemaObj,
       nunjucks: {
         default: defaultNunjucks,
         html: htmlNunjucks,
